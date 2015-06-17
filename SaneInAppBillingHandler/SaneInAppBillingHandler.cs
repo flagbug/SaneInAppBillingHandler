@@ -3,22 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Xamarin.InAppBilling;
 
 namespace SaneInAppBillingHandler
 {
-    internal class SaneInAppBillingHandler
+    public class SaneInAppBillingHandler
     {
         private readonly InAppBillingServiceConnection serviceConnection;
 
+        /// <summary>
+        /// Creates a new instance of the <see cref="SaneInAppBillingHandler"/> class.
+        /// </summary>
+        /// <param name="activity">
+        /// The activity you're hosting this <see cref="SaneInAppBillingHandler"/> in.
+        /// </param>
+        /// <param name="publicKey">The key you received from Google for your In-App purchases.</param>
         public SaneInAppBillingHandler(Activity activity, string publicKey)
         {
             this.serviceConnection = new InAppBillingServiceConnection(activity, publicKey);
         }
 
-        public IObservable<int> BuyProduct(Product product)
+        /// <summary>
+        /// Buys the specified <see cref="Product"/>
+        /// </summary>
+        /// <param name="product">The product to buy.</param>
+        /// <returns>
+        /// A future with the result of the operation.
+        /// 
+        /// The result maps to a value in the <see cref="BillingResult"/> class.
+        /// </returns>
+        public Task<int> BuyProduct(Product product)
         {
             return Observable.Create<int>(o =>
             {
@@ -76,10 +94,18 @@ namespace SaneInAppBillingHandler
                     this.serviceConnection.BillingHandler.OnUserCanceled -= canceledDelegate;
                     this.serviceConnection.BillingHandler.OnPurchaseFailedValidation -= validationErrorDelegate;
                 };
-            });
+            }).ToTask();
         }
 
-        public IObservable<Unit> Connect()
+        /// <summary>
+        /// Connects to the billing service.
+        /// 
+        /// Call this method before making any other requests.
+        /// </summary>
+        /// <exception cref="InAppBillingException">
+        /// (asynchronous) The connection to the billing service couldn't be established.
+        /// </exception>
+        public Task Connect()
         {
             return Observable.Create<Unit>(o =>
             {
@@ -113,10 +139,17 @@ namespace SaneInAppBillingHandler
                     this.serviceConnection.OnConnected -= connectedDelegate;
                     this.serviceConnection.OnInAppBillingError -= errorDelegate;
                 };
-            });
+            }).ToTask();
         }
 
-        public IObservable<Unit> ConsumePurchase(Purchase purchase)
+        /// <summary>
+        /// Consumes the specified <see cref="Purchase"/>.
+        /// </summary>
+        /// <param name="purchase">The <see cref="Purchase"/> to consume.</param>
+        /// <exception cref="InAppBillingException">
+        /// The <see cref="Purchase"/> couldn't be consumed.
+        /// </exception>
+        public Task ConsumePurchase(Purchase purchase)
         {
             return Observable.Create<Unit>(o =>
             {
@@ -126,14 +159,14 @@ namespace SaneInAppBillingHandler
                     o.OnCompleted();
                 };
 
-                InAppBillingHandler.OnPurchaseConsumedErrorDelegate consumedErrorDelegate = (responeCode, token) =>
+                InAppBillingHandler.OnPurchaseConsumedErrorDelegate consumedErrorDelegate = (responseCode, token) =>
                 {
                     o.OnError(new InAppBillingException("Failed to consume purchase"));
                 };
 
                 InAppBillingHandler.InAppBillingProcessingErrorDelegate errorDelegate = message =>
                 {
-                    o.OnError(new InAppBillingException($"Consuming purchase failed: {message}"));
+                    o.OnError(new InAppBillingException($"Failed to consume purchase: {message}"));
                 };
 
                 this.serviceConnection.BillingHandler.OnPurchaseConsumed += consumedDelegate;
@@ -148,7 +181,7 @@ namespace SaneInAppBillingHandler
                     this.serviceConnection.BillingHandler.OnPurchaseConsumedError -= consumedErrorDelegate;
                     this.serviceConnection.BillingHandler.InAppBillingProcesingError -= errorDelegate;
                 };
-            });
+            }).ToTask();
         }
 
         public void Disconnect()
@@ -159,7 +192,15 @@ namespace SaneInAppBillingHandler
             }
         }
 
-        public IObservable<IReadOnlyList<Purchase>> GetPurchases()
+        /// <summary>
+        /// Gets a list of all purchased products.
+        /// </summary>
+        /// <param name="itemType">
+        /// The type of product to retrieve. See the <see cref="ItemType"/> class for a list of types.
+        /// </param>
+        /// <returns>A list of purchased products.</returns>
+        /// <exception cref="InAppBillingException">Retrieving the purchases failed.</exception>
+        public Task<IReadOnlyList<Purchase>> GetPurchases(string itemType)
         {
             return Observable.Create<IReadOnlyList<Purchase>>(o =>
             {
@@ -170,24 +211,28 @@ namespace SaneInAppBillingHandler
 
                 this.serviceConnection.BillingHandler.InAppBillingProcesingError += errorDelegate;
 
-                IList<Purchase> purchases = this.serviceConnection.BillingHandler.GetPurchases(ItemType.Product);
+                IList<Purchase> purchases = this.serviceConnection.BillingHandler.GetPurchases(itemType);
 
-                if (purchases != null)
-                {
-                    o.OnNext(purchases.ToList());
-                    o.OnCompleted();
-                }
+                o.OnNext(purchases == null ? new List<Purchase>() : purchases.ToList());
+                o.OnCompleted();
 
                 return () => this.serviceConnection.BillingHandler.InAppBillingProcesingError -= errorDelegate;
-            });
+            }).ToTask();
         }
 
+        /// <summary>
+        /// Call this method in the <see cref="Activity.OnActivityResult(int, Result, Intent)"/>
+        /// method of your activity, or your In-App purchases won't work.
+        /// </summary>
         public void HandleActivityResult(int requestCode, Result resultCode, Intent data)
         {
-            this.serviceConnection.BillingHandler?.HandleActivityResult(requestCode, resultCode, data);
+            if (this.serviceConnection.BillingHandler != null)
+            {
+                this.serviceConnection.BillingHandler.HandleActivityResult(requestCode, resultCode, data);
+            }
         }
 
-        public IObservable<IReadOnlyList<Product>> QueryInventoryAsync(IEnumerable<string> skuList)
+        public Task<IReadOnlyList<Product>> QueryInventory(IEnumerable<string> idList, string itemType)
         {
             return Observable.Create<IReadOnlyList<Product>>(async o =>
             {
@@ -198,19 +243,13 @@ namespace SaneInAppBillingHandler
 
                 this.serviceConnection.BillingHandler.QueryInventoryError += errorDelegate;
 
-                IList<Product> products = await this.serviceConnection.BillingHandler.QueryInventoryAsync(skuList.ToList(), ItemType.Product);
+                IList<Product> products = await this.serviceConnection.BillingHandler.QueryInventoryAsync(idList.ToList(), itemType);
 
-                if (products != null)
-                {
-                    o.OnNext(products.ToList());
-                    o.OnCompleted();
-                }
+                o.OnNext(products == null ? new List<Product>() : products.ToList());
+                o.OnCompleted();
 
-                return () =>
-                {
-                    this.serviceConnection.BillingHandler.QueryInventoryError -= errorDelegate;
-                };
-            });
+                return () => this.serviceConnection.BillingHandler.QueryInventoryError -= errorDelegate;
+            }).ToTask();
         }
     }
 }
