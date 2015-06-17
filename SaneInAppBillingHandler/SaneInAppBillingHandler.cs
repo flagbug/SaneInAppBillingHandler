@@ -232,6 +232,14 @@ namespace SaneInAppBillingHandler
             }
         }
 
+        /// <summary>
+        /// Retrieves the <see cref="Product"/> s with the specified IDs and item type.
+        /// </summary>
+        /// <param name="idList">A list of IDs of the products to retrieve.</param>
+        /// <param name="itemType">
+        /// The type of product to retrieve. See the <see cref="ItemType"/> class for a list of types.
+        /// </param>
+        /// <exception cref="InAppBillingException">Retrieving the products failed.</exception>
         public Task<IReadOnlyList<Product>> QueryInventory(IEnumerable<string> idList, string itemType)
         {
             return Observable.Create<IReadOnlyList<Product>>(async o =>
