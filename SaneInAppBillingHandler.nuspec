@@ -12,6 +12,9 @@
         <description>A sane wrapper over the Xamarin.InAppBilling library .</description>
         <tags>Android Xamarin In App Billing</tags>
     </metadata>
+    <dependencies>
+		  <dependency id="Rx-Main" version="2.2.5" />
+		</dependencies>
     <files>
         <file src="SaneInAppBillingHandler\bin\Release\SaneInAppBillingHandler.dll" target="lib\monoandroid403\SaneInAppBillingHandler.dll" />
         <file src="SaneInAppBillingHandler\bin\Release\SaneInAppBillingHandler.xml" target="lib\monoandroid403\SaneInAppBillingHandler.xml" />
