@@ -67,15 +67,10 @@
   <ItemGroup>
     <Compile Include="SaneInAppBillingHandler.cs" />
     <Compile Include="InAppBillingException.cs" />
-    <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Resources\AboutResources.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\Values\Strings.xml" />
   </ItemGroup>
   <ItemGroup>
     <XamarinComponentReference Include="xamarin.inappbilling">
