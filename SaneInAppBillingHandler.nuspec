@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>SaneInAppBillingHandler</id>
+        <version>0.1.0</version>
+        <title>SaneInAppBillingHandler</title>
+        <authors>Dennis Daume</authors>
+        <owners>Dennis Daume</owners>
+        <licenseUrl>http://opensource.org/licenses/mit</licenseUrl>
+        <projectUrl>http://github.com/flagbug/SaneInAppBillingHandler</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A sane wrapper over the Xamarin.InAppBilling library .</description>
+        <tags>Android Xamarin In App Billing</tags>
+    </metadata>
+    <files>
+        <file src="SaneInAppBillingHandler\bin\Release\SaneInAppBillingHandler.dll" target="lib\monoandroid403\SaneInAppBillingHandler.dll" />
+        <file src="SaneInAppBillingHandler\bin\Release\SaneInAppBillingHandler.xml" target="lib\monoandroid403\SaneInAppBillingHandler.xml" />
+    </files>
+</package>
