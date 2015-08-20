@@ -22,8 +22,17 @@ namespace SaneInAppBillingHandler
         /// The activity you're hosting this <see cref="SaneInAppBillingHandler"/> in.
         /// </param>
         /// <param name="publicKey">The key you received from Google for your In-App purchases.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="activity"/> or <paramref name="publicKey"/> is <c>null</c>.
+        /// </exception>
         public SaneInAppBillingHandler(Activity activity, string publicKey)
         {
+            if (activity == null)
+                throw new ArgumentNullException(nameof(activity));
+
+            if (publicKey == null)
+                throw new ArgumentNullException(publicKey);
+
             this.serviceConnection = new InAppBillingServiceConnection(activity, publicKey);
         }
 
@@ -36,8 +45,12 @@ namespace SaneInAppBillingHandler
         /// 
         /// The result maps to a value in the <see cref="BillingResult"/> class.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="product"/> is <c>null</c></exception>
         public Task<int> BuyProduct(Product product)
         {
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+
             return Observable.Create<int>(o =>
             {
                 InAppBillingHandler.OnProductPurchasedDelegate purchaseCompleted = (response, purchase, data, signature) =>
@@ -146,11 +159,15 @@ namespace SaneInAppBillingHandler
         /// Consumes the specified <see cref="Purchase"/>.
         /// </summary>
         /// <param name="purchase">The <see cref="Purchase"/> to consume.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="purchase"/> is <c>null</c>.</exception>
         /// <exception cref="InAppBillingException">
         /// The <see cref="Purchase"/> couldn't be consumed.
         /// </exception>
         public Task ConsumePurchase(Purchase purchase)
         {
+            if (purchase == null)
+                throw new ArgumentNullException(nameof(purchase));
+
             return Observable.Create<Unit>(o =>
             {
                 InAppBillingHandler.OnPurchaseConsumedDelegate consumedDelegate = token =>
@@ -199,9 +216,21 @@ namespace SaneInAppBillingHandler
         /// The type of product to retrieve. See the <see cref="ItemType"/> class for a list of types.
         /// </param>
         /// <returns>A list of purchased products.</returns>
-        /// <exception cref="InAppBillingException">Retrieving the purchases failed.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="itemType"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="itemType"/> is not <see cref="ItemType.Product"/> or <see cref="ItemType.Subscription"/>.
+        /// </exception>
+        /// <exception cref="InAppBillingException">
+        /// (asynchronous) Retrieving the purchases failed.
+        /// </exception>
         public Task<IReadOnlyList<Purchase>> GetPurchases(string itemType)
         {
+            if (itemType == null)
+                throw new ArgumentNullException(nameof(itemType));
+
+            if (itemType != ItemType.Product || itemType != ItemType.Subscription)
+                throw new ArgumentException("Invalid item type.");
+
             return Observable.Create<IReadOnlyList<Purchase>>(o =>
             {
                 InAppBillingHandler.InAppBillingProcessingErrorDelegate errorDelegate = message =>
@@ -239,9 +268,30 @@ namespace SaneInAppBillingHandler
         /// <param name="itemType">
         /// The type of product to retrieve. See the <see cref="ItemType"/> class for a list of types.
         /// </param>
-        /// <exception cref="InAppBillingException">Retrieving the products failed.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="idList"/> or <paramref name="itemType"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="idList"/> is empty
+        /// -- or -- <paramref name="itemType"/> is not <see cref="ItemType.Product"/> or <see cref="ItemType.Subscription"/>.
+        /// </exception>
+        /// <exception cref="InAppBillingException">
+        /// (asynchronous) Retrieving the products failed.
+        /// </exception>
         public Task<IReadOnlyList<Product>> QueryInventory(IEnumerable<string> idList, string itemType)
         {
+            if (idList == null)
+                throw new ArgumentNullException(nameof(idList));
+
+            if (!idList.Any())
+                throw new ArgumentException($"{nameof(idList)} can't be empty.");
+
+            if (itemType == null)
+                throw new ArgumentNullException(nameof(itemType));
+
+            if (itemType != ItemType.Product || itemType != ItemType.Subscription)
+                throw new ArgumentException("Invalid item type.");
+
             return Observable.Create<IReadOnlyList<Product>>(async o =>
             {
                 InAppBillingHandler.QueryInventoryErrorDelegate errorDelegate = (code, skuDetails) =>
