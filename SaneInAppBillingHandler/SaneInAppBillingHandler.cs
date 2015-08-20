@@ -228,7 +228,7 @@ namespace SaneInAppBillingHandler
             if (itemType == null)
                 throw new ArgumentNullException(nameof(itemType));
 
-            if (itemType != ItemType.Product || itemType != ItemType.Subscription)
+            if (itemType != ItemType.Product && itemType != ItemType.Subscription)
                 throw new ArgumentException("Invalid item type.");
 
             return Observable.Create<IReadOnlyList<Purchase>>(o =>
@@ -289,7 +289,7 @@ namespace SaneInAppBillingHandler
             if (itemType == null)
                 throw new ArgumentNullException(nameof(itemType));
 
-            if (itemType != ItemType.Product || itemType != ItemType.Subscription)
+            if (itemType != ItemType.Product && itemType != ItemType.Subscription)
                 throw new ArgumentException("Invalid item type.");
 
             return Observable.Create<IReadOnlyList<Product>>(async o =>
