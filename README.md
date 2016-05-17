@@ -34,14 +34,16 @@ try
 catch (InAppBillingException ex)
 {
   // Thrown if the commection fails for whatever reason (device doesn't support In-App billing, etc.)
-  // All methods (except for Disconnect()) may throw this exception, handling it is omitted for brevity in the rest of the samples
+  // All methods (except for Disconnect()) may throw this exception, 
+  // handling it is omitted for brevity in the rest of the samples
 }
 ```
 
 ### Getting available purchases
 
 ```csharp
-// Retrieve the product infos for "myItem1" and "myItem2" (these are the IDs that you give your products in the Google Play Developer Console)
+// Retrieve the product infos for "myItem1" and "myItem2" 
+// (these are the IDs that you give your products in the Google Play Developer Console)
 // The second argument specifies if those products are subscriptions or normal one-time purchases
 IReadOnlyList<Product> products = await handler.QueryInventory(new[]{"myItem1", "myItem2", ItemType.Product);
 ```
