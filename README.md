@@ -8,9 +8,9 @@ The Xamarin.InAppBilling API is, let's say, a bit strange to use.
 For example: to buy a product through the API, you have to handle the following events:
 
 - `OnProductPurchased`
-- `OnProductPurchasedError``
-- `BuyProductError``
-- `InAppBillingProcesingError`
+- `OnProductPurchasedError`
+- `BuyProductError`
+- `InAppBillingProcesingError` [sic!]
 - `OnUserCanceled`
 - `OnPurchaseFailedValidation`
 
